@@ -1,17 +1,24 @@
 module Spree
-  class Gateway::Payumoney < Gateway
-    preference :login, :string
-    preference :password, :string
-    preference :currency, :string, :default => 'GBP'
-    preference :installation_id, :string
+  class Gateway::PayUMoney < Gateway
+    # Production Preferences
+    preference :post_url, :string, :default => "https://secure.payu.in/_payment"
 
-    preference :american_express_login, :string
-    preference :mastercard_login, :string
-    preference :maestro_login, :string
-    preference :visa_login, :string
+    preference :key, :string, :default => "4834548"
+    preference :salt, :string
+
+    # Test Preferences
+    preference :test_post_url, :string, :default => "https://test.payu.in/_payment"
+
+    preference :test_key, :string, :default => "JBZaLc"
+    preference :test_salt, :string, :default => "GQs7yium"
+    
+    preference :test_card_name, :string, :default => 'Test Bank Visa Card'
+    preference :test_card_number, :string, :default => '5123456789012346'
+    preference :test_cvv, :string, :default => '123'
+    preference :test_expiry, :string, :default => 'May 2017'
 
     def provider_class
-      ActiveMerchant::Billing::PayUMoneyGateway
+      ActiveMerchant::Billing::Integrations::PayuIn
     end
 
     def purchase(money, credit_card, options = {})
