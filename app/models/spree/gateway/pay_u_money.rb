@@ -1,5 +1,8 @@
 module Spree
   class Gateway::PayUMoney < Gateway
+    require "open-uri"
+    require "net/https"
+
     # Production Preferences
     preference :post_url, :string, :default => "https://secure.payu.in/_payment"
 
@@ -17,38 +20,57 @@ module Spree
     preference :test_cvv, :string, :default => '123'
     preference :test_expiry, :string, :default => 'May 2017'
 
+    mattr_accessor :test_post_url
+    mattr_accessor :post_url
+    mattr_accessor :test_key
+
     def provider_class
       ActiveMerchant::Billing::Integrations::PayuIn
     end
 
+    def auto_capture?
+      true
+    end
+
     def purchase(money, credit_card, options = {})
-      provider = credit_card_provider(credit_card, options)
-      provider.purchase(money, credit_card, options)
+      # redirect1 "https://test.payu.in/_payment"
+
+      # provider = credit_card_provider(credit_card, options)
+      # provider.purchase(money, credit_card, options)
+
+      url = URI.parse(:test_post_url)
+      req = Net::HTTP::Post.new(url.path)
+      req.form_data = {}
+      con = Net::HTTP.new(url.host, url.port)
+      con.use_ssl = true
+      con.start {|http| http.request(req)}
     end
 
     def authorize(money, credit_card, options = {})
-      provider = credit_card_provider(credit_card, options)
-      provider.authorize(money, credit_card, options)
+      redirect "https://test.payu.in/_payment"
+    #   provider = credit_card_provider(credit_card, options)
+    #   provider.authorize(money, credit_card, options)
     end
 
     def capture(money, authorization, options = {})
-      provider = credit_card_provider(auth_credit_card(authorization), options)
-      provider.capture(money, authorization, options)
+      # redirect2 "https://test.payu.in/_payment"
+    #   provider = credit_card_provider(auth_credit_card(authorization), options)
+    #   provider.capture(money, authorization, options)
     end
 
-    def refund(money, authorization, options = {})
-      provider = credit_card_provider(auth_credit_card(authorization), options)
-      provider.refund(money, authorization, options)
-    end
+    # def refund(money, authorization, options = {})
+    #   provider = credit_card_provider(auth_credit_card(authorization), options)
+    #   provider.refund(money, authorization, options)
+    # end
 
-    def credit(money, authorization, options = {})
-      refund(money, authorization, options)
-    end
+    # def credit(money, authorization, options = {})
+    #   refund(money, authorization, options)
+    # end
 
-    def void(authorization, options = {})
-      provider = credit_card_provider(auth_credit_card(authorization), options)
-      provider.void(authorization, options)
-    end
+    # def void(authorization, options = {})
+    #   provider = credit_card_provider(auth_credit_card(authorization), options)
+    #   provider.void(authorization, options)
+    # end
 
     private
 
